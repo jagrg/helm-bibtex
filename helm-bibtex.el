@@ -751,18 +751,24 @@ defined.  Surrounding curly braces are stripped."
     (if (re-search-forward (format helm-bibtex-notes-key-pattern key) nil t)
                                         ; Existing entry found:
         (when (eq major-mode 'org-mode)
-          (outline-previous-visible-heading 1)
+          (org-show-entry)
           (org-narrow-to-subtree)
-          (org-show-subtree))
+          (outline-previous-visible-heading 1)
+          (show-children))
                                         ; Create a new entry:
-      (goto-char (point-min))
-      (insert (s-format helm-bibtex-notes-template-one-file
-                        'helm-bibtex-apa-get-value
-                        (helm-bibtex-get-entry key)))
-      (when (eq major-mode 'org-mode)
-        (outline-previous-visible-heading 1)
-        (org-narrow-to-subtree)
-        (goto-char (point-max))))))
+      (if (not (re-search-forward (format helm-bibtex-notes-key-pattern key) nil t))
+          (when (eq major-mode 'org-mode)
+            (progn
+              (goto-char (point-max))
+              (outline-show-all)
+              (org-narrow-to-subtree)
+              (insert (s-format helm-bibtex-notes-template
+                                'helm-bibtex-apa-get-value
+                                (helm-bibtex-get-entry key)))
+              (outline-previous-visible-heading 1)
+              (org-narrow-to-subtree)
+              (goto-char (point-max))
+              ))))))
 
 (defun helm-bibtex-buffer-visiting (file)
   (or (get-file-buffer file)
